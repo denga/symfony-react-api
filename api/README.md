@@ -70,6 +70,40 @@ flowchart TB
     OrderMapper --> OrderEntity
 ```
 
+**Request flow (List Orders):**
+
+```mermaid
+flowchart TB
+    subgraph UI [UI Layer]
+        ListController[OrderController]
+        ListResponse[OrdersListResponse]
+    end
+    
+    subgraph Application [Application Layer]
+        ListHandler[ListOrdersHandler]
+        ListQuery[ListOrdersQuery]
+        OrderSummary[OrderSummary]
+    end
+    
+    subgraph Domain [Domain Layer]
+        OrderRepo[OrderRepositoryInterface]
+        Order[Order Model]
+    end
+    
+    subgraph Infrastructure [Infrastructure Layer]
+        DoctrineRepo[DoctrineOrderRepository]
+    end
+    
+    ListController --> ListQuery
+    ListController --> ListHandler
+    ListHandler --> ListQuery
+    ListHandler --> OrderRepo
+    OrderRepo --> DoctrineRepo
+    DoctrineRepo --> Order
+    ListHandler --> OrderSummary
+    OrderSummary --> ListResponse
+```
+
 **Layers overview:**
 
 | Layer              | Path                  | Responsibility                                        |
@@ -80,13 +114,16 @@ flowchart TB
 | **Domain**         | `src/Domain/`         | Business logic, models, repository interfaces        |
 | **Infrastructure** | `src/Infrastructure/` | Doctrine entities, persistence, mappers               |
 
-## API Endpoint
+## API Endpoints
 
-- **POST** `/api/orders` – Create order
-- Request body: `customerId`, `items` (array with `sku`, `quantity`, `price_cents`)
-- Response: `orderId`, `orderUrl` (201 Created)
+| Method | Path | Description |
+|--------|------|-------------|
+| **POST** | `/api/orders` | Create order. Body: `customerId`, `items` (array with `sku`, `quantity`, `price_cents`). Response: `orderId`, `orderUrl` (201 Created) |
+| **GET** | `/api/orders` | List orders (paginated). Query: `page` (default 1), `perPage` (default 20). Response: `meta` (total, page, perPage, totalPages), `data` (items) |
 
 ## Testing with curl
+
+**Create order (POST):**
 
 ```bash
 curl -k -X POST https://localhost:443/api/orders \
@@ -98,6 +135,12 @@ curl -k -X POST https://localhost:443/api/orders \
       {"sku": "PROD-002", "quantity": 1, "price_cents": 4999}
     ]
   }'
+```
+
+**List orders (GET):**
+
+```bash
+curl -k -X GET "https://localhost:443/api/orders?page=1&perPage=20"
 ```
 
 - `-k` for self-signed SSL certificates (Docker/Caddy)

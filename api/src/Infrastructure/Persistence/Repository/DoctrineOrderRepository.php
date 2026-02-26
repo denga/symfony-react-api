@@ -35,4 +35,33 @@ readonly class DoctrineOrderRepository implements OrderRepositoryInterface
 
         return OrderMapper::toDomain($do);
     }
+
+    public function findPaginated(int $page, int $perPage): array
+    {
+        $queryBuilder = $this->entityManager->createQueryBuilder()
+            ->select('o')
+            ->from(OrderDoctrineEntity::class, 'o')
+            ->orderBy('o.id', 'DESC'); // oder created_at wenn vorhanden
+
+        $firstResult = max(0, ($page - 1) * $perPage);
+        $query = $queryBuilder->getQuery();
+        $query->setFirstResult($firstResult);
+        $query->setMaxResults($perPage);
+
+        /** @var list<OrderDoctrineEntity> $doctrineEntities */
+        $doctrineEntities = $query->getResult();
+
+        $countQb = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(o.id)')
+            ->from(OrderDoctrineEntity::class, 'o');
+
+        $total = (int) $countQb->getQuery()->getSingleScalarResult();
+
+        $orders = array_map(OrderMapper::toDomain(...), $doctrineEntities);
+
+        return [
+            'items' => $orders,
+            'total' => $total,
+        ];
+    }
 }

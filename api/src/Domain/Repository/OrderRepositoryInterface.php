@@ -12,4 +12,9 @@ interface OrderRepositoryInterface
     public function save(Order $order): void;
 
     public function findById(OrderId $orderId): ?Order;
+
+    /**
+     * @return array{items: Order[], total:int}
+     */
+    public function findPaginated(int $page, int $perPage): array;
 }
