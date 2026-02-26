@@ -1,0 +1,52 @@
+deptrac:
+    paths:
+        - src/
+
+    layers:
+        - name: Controllers
+          collectors:
+              - type: classLike
+                value: .*Controller.*
+              - type: directory
+                value: src/Controller
+
+        - name: UI
+          collectors:
+              - type: directory
+                value: src/UI
+
+        - name: Application
+          collectors:
+              - type: directory
+                value: src/Application
+
+        - name: Domain
+          collectors:
+              - type: directory
+                value: src/Domain
+              - type: classLike
+                value: .*Domain.*
+
+        - name: Infrastructure
+          collectors:
+              - type: directory
+                value: src/Infrastructure
+
+        - name: Shared
+          collectors:
+              - type: directory
+                value: src/Shared
+
+    ruleset:
+        Controllers: [UI, Application]
+        UI:
+            - +Application                # + erlaubt transitiv alle Layers, die Application erlaubt
+        Application:
+            - Domain
+            - Infrastructure
+        Domain: ~                       # Domain darf nichts außerhalb haben (tilde = none)
+        Infrastructure:
+            - Domain
+            - Shared
+        Shared:
+            - Domain

@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+# See also https://symfony.com/doc/current/service_container/import.html
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+
+    App\UI\Api\EventListener\ApiExceptionListener:
+        arguments:
+            $debug: '%kernel.debug%'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Interface to implementation
+    App\Domain\Repository\OrderRepositoryInterface: '@App\Infrastructure\Persistence\Repository\DoctrineOrderRepository'
+
+    App\Domain\Service\:
+        resource: '../src/Domain/Service/*'
+        autowire: true
+        autoconfigure: true
+
+    # autowire others by namespace
+    App\UI\:
+        resource: '../src/UI/*'
+        autowire: true
+        autoconfigure: true
+
+    App\Application\:
+        resource: '../src/Application/*'
+        autowire: true
+        autoconfigure: true
+
+    App\Infrastructure\:
+        resource: '../src/Infrastructure/*'
+        autowire: true
+        autoconfigure: true
