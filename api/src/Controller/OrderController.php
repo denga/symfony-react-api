@@ -49,11 +49,11 @@ class OrderController extends AbstractController
         $result = $this->listOrdersHandler->handle($listOrdersQuery);
 
         /** @var array<int, array{orderId: string, customerId: string, totalCents: int, paid: bool}> $items */
-        $items = array_values(array_map(fn (OrderSummary $s): array => [
-            'orderId' => $s->orderId,
-            'customerId' => $s->customerId,
-            'totalCents' => $s->totalCents,
-            'paid' => $s->paid,
+        $items = array_values(array_map(fn (OrderSummary $orderSummary): array => [
+            'orderId' => $orderSummary->orderId,
+            'customerId' => $orderSummary->customerId,
+            'totalCents' => $orderSummary->totalCents,
+            'paid' => $orderSummary->paid,
         ], $result['items']));
 
         $ordersListResponse = new OrdersListResponse($items, $result['total'], $page, $perPage);

@@ -47,3 +47,6 @@ services:
         resource: '../src/Infrastructure/*'
         autowire: true
         autoconfigure: true
+
+    App\Command\CreateOrderConsoleCommand:
+        tags: ['console.command']

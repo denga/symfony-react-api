@@ -10,6 +10,11 @@ deptrac:
               - type: directory
                 value: src/Controller
 
+        - name: Commands
+          collectors:
+              - type: directory
+                value: src/Command
+
         - name: UI
           collectors:
               - type: directory
@@ -39,6 +44,7 @@ deptrac:
 
     ruleset:
         Controllers: [UI, Application]
+        Commands: [UI, Application]
         UI:
             - +Application                # + erlaubt transitiv alle Layers, die Application erlaubt
         Application:

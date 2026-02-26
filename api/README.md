@@ -109,6 +109,7 @@ flowchart TB
 | Layer              | Path                  | Responsibility                                        |
 | ------------------ | --------------------- | ----------------------------------------------------- |
 | **Controller**     | `src/Controller/`     | HTTP routing, delegation to Application               |
+| **Commands**       | `src/Command/`        | CLI commands, delegation to Application               |
 | **UI**             | `src/UI/Api/`         | Request/Response DTOs, validation, exception handling |
 | **Application**    | `src/Application/`    | Use cases (Commands/Handlers), transaction control   |
 | **Domain**         | `src/Domain/`         | Business logic, models, repository interfaces        |
@@ -146,9 +147,25 @@ curl -k -X GET "https://localhost:443/api/orders?page=1&perPage=20"
 - `-k` for self-signed SSL certificates (Docker/Caddy)
 - Port 443 per `compose.yaml`; use 80 for HTTP if needed
 
+## Console Commands
+
+**app:create-order** – Create order from CLI
+
+- Argument: `customerId` (required)
+- Option: `--item "sku:quantity:price_cents"` (repeatable)
+
+```bash
+# Local
+php bin/console app:create-order cust-123 --item "sku-1:2:1999" --item "sku-2:1:499"
+
+# Docker (service name: php)
+docker compose exec php php bin/console app:create-order cust-123 --item "sku-1:2:1999" --item "sku-2:1:499"
+```
+
 ## Project Structure
 
 - `src/Controller` – HTTP controllers
+- `src/Command` – Console commands (CLI entry points)
 - `src/UI/Api` – Request/Response DTOs, mappers, validation
 - `src/Application` – Commands, handlers, use cases
 - `src/Domain` – Domain models, factories, repository interfaces
