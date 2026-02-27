@@ -5,22 +5,20 @@ declare(strict_types=1);
 namespace App\Application\Query;
 
 use App\Application\DTO\OrderSummary;
+use App\Application\DTO\PaginatedResult;
 use App\Domain\Repository\OrderRepositoryInterface;
 
-final readonly class ListOrdersHandler
+final readonly class ListOrdersHandler implements ListOrdersHandlerInterface
 {
     public function __construct(
         private OrderRepositoryInterface $orderRepository,
     ) {
     }
 
-    /**
-     * @return array{items: OrderSummary[], total:int}
-     */
-    public function handle(ListOrdersQuery $listOrdersQuery): array
+    public function handle(ListOrdersQuery $listOrdersQuery): PaginatedResult
     {
         $page = max(1, $listOrdersQuery->page);
-        $perPage = max(1, min(100, $listOrdersQuery->perPage)); // Schutz gegen zu große requests
+        $perPage = max(1, min(100, $listOrdersQuery->perPage));
 
         $result = $this->orderRepository->findPaginated($page, $perPage);
 
@@ -31,9 +29,6 @@ final readonly class ListOrdersHandler
             $order->isPaid()
         ), $result['items']);
 
-        return [
-            'items' => $summaries,
-            'total' => $result['total'],
-        ];
+        return new PaginatedResult($summaries, $result['total'], $page, $perPage);
     }
 }

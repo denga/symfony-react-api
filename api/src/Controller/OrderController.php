@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Application\Command\CreateOrderHandler;
-use App\Application\DTO\OrderSummary;
-use App\Application\Query\ListOrdersHandler;
+use App\Application\Command\CreateOrderHandlerInterface;
+use App\Application\Query\GetOrderHandler;
+use App\Application\Query\GetOrderQuery;
+use App\Application\Query\ListOrdersHandlerInterface;
 use App\Application\Query\ListOrdersQuery;
+use App\Domain\Model\OrderId;
+use App\UI\Api\Mapper\OrderSummaryToResponseMapper;
 use App\UI\Api\Mapper\RequestToCommandMapper;
 use App\UI\Api\Request\CreateOrderRequest;
+use App\UI\Api\Request\ListOrdersRequest;
 use App\UI\Api\Response\CreateOrderResponse;
+use App\UI\Api\Response\OrderDetailResponse;
 use App\UI\Api\Response\OrdersListResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -22,8 +27,10 @@ class OrderController extends AbstractController
 {
     public function __construct(
         private readonly RequestToCommandMapper $requestToCommandMapper,
-        private readonly CreateOrderHandler $createOrderHandler,
-        private readonly ListOrdersHandler $listOrdersHandler,
+        private readonly OrderSummaryToResponseMapper $orderSummaryToResponseMapper,
+        private readonly CreateOrderHandlerInterface $createOrderHandler,
+        private readonly ListOrdersHandlerInterface $listOrdersHandler,
+        private readonly GetOrderHandler $getOrderHandler,
     ) {
     }
 
@@ -40,24 +47,44 @@ class OrderController extends AbstractController
     }
 
     #[Route('/api/orders', name: 'api_list_orders', methods: ['GET'])]
-    public function list(Request $request): JsonResponse
-    {
-        $page = max(1, $request->query->getInt('page', 1));
-        $perPage = max(1, $request->query->getInt('perPage', 20));
-
-        $listOrdersQuery = new ListOrdersQuery($page, $perPage);
+    public function list(
+        #[MapQueryString]
+        ListOrdersRequest $listOrdersRequest,
+    ): JsonResponse {
+        $listOrdersQuery = new ListOrdersQuery($listOrdersRequest->page, $listOrdersRequest->perPage);
         $result = $this->listOrdersHandler->handle($listOrdersQuery);
 
-        /** @var array<int, array{orderId: string, customerId: string, totalCents: int, paid: bool}> $items */
-        $items = array_values(array_map(fn (OrderSummary $orderSummary): array => [
-            'orderId' => $orderSummary->orderId,
-            'customerId' => $orderSummary->customerId,
-            'totalCents' => $orderSummary->totalCents,
-            'paid' => $orderSummary->paid,
-        ], $result['items']));
-
-        $ordersListResponse = new OrdersListResponse($items, $result['total'], $page, $perPage);
+        $items = $this->orderSummaryToResponseMapper->map($result->items);
+        $ordersListResponse = new OrdersListResponse(
+            $items,
+            $result->total,
+            $result->page,
+            $result->perPage
+        );
 
         return $this->json($ordersListResponse, 200);
+    }
+
+    #[Route('/api/orders/{id}', name: 'api_get_order', methods: ['GET'])]
+    public function get(string $id): JsonResponse
+    {
+        try {
+            $orderId = OrderId::fromString($id);
+        } catch (\InvalidArgumentException) {
+            return $this->json(['error' => 'Invalid order ID'], 404);
+        }
+
+        $summary = $this->getOrderHandler->handle(new GetOrderQuery($orderId));
+
+        if (null === $summary) {
+            return $this->json(['error' => 'Order not found'], 404);
+        }
+
+        return $this->json(new OrderDetailResponse(
+            $summary->orderId,
+            $summary->customerId,
+            $summary->totalCents,
+            $summary->paid
+        ), 200);
     }
 }

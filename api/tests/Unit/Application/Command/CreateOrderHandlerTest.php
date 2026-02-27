@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Application\Command;
 
 use App\Application\Command\CreateOrderCommand;
 use App\Application\Command\CreateOrderHandler;
+use App\Domain\Event\DomainEventPublisherInterface;
 use App\Domain\Model\Order;
 use App\Domain\Model\OrderId;
 use App\Domain\Model\OrderItem;
@@ -43,10 +44,12 @@ final class CreateOrderHandlerTest extends TestCase
         $mockEntityManager->expects($this->once())->method('commit');
 
         $mockLogger = $this->createStub(LoggerInterface::class);
+        $mockDomainEventPublisher = $this->createStub(DomainEventPublisherInterface::class);
 
         $createOrderHandler = new CreateOrderHandler(
             $mockOrderRepository,
             $mockOrderFactory,
+            $mockDomainEventPublisher,
             $mockEntityManager,
             $mockLogger,
         );
@@ -81,10 +84,12 @@ final class CreateOrderHandlerTest extends TestCase
 
         $mockLogger = $this->createMock(LoggerInterface::class);
         $mockLogger->expects($this->once())->method('error');
+        $mockDomainEventPublisher = $this->createStub(DomainEventPublisherInterface::class);
 
         $createOrderHandler = new CreateOrderHandler(
             $mockOrderRepository,
             $mockOrderFactory,
+            $mockDomainEventPublisher,
             $mockEntityManager,
             $mockLogger,
         );

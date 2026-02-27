@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Command;
 
 use App\Application\DTO\CreateOrderResult;
+use App\Domain\Event\DomainEventPublisherInterface;
 use App\Domain\Repository\OrderRepositoryInterface;
 use App\Domain\Service\OrderFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,6 +16,7 @@ final readonly class CreateOrderHandler implements CreateOrderHandlerInterface
     public function __construct(
         private OrderRepositoryInterface $orderRepository,
         private OrderFactoryInterface $orderFactory,
+        private DomainEventPublisherInterface $domainEventPublisher,
         private EntityManagerInterface $entityManager,
         private LoggerInterface $logger,
     ) {
@@ -33,12 +35,8 @@ final readonly class CreateOrderHandler implements CreateOrderHandlerInterface
             // commit
             $this->entityManager->commit();
 
-            // Dispatch domain events (example: fire after successful commit)
             foreach ($order->releaseEvents() as $event) {
-                // Here we simply log — in real app inject DomainEventPublisherInterface
-                $this->logger->info('Dispatch domain event', [
-                    'event' => $event,
-                ]);
+                $this->domainEventPublisher->publish($event);
             }
 
             return new CreateOrderResult($order->id()->toString());

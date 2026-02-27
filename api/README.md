@@ -47,7 +47,8 @@ flowchart TB
 | Method | Path | Description |
 |--------|------|-------------|
 | **POST** | `/api/orders` | Create order. Body: `customerId`, `items` (array with `sku`, `quantity`, `price_cents`). Response: `orderId`, `orderUrl` (201 Created) |
-| **GET** | `/api/orders` | List orders (paginated). Query: `page` (default 1), `perPage` (default 20). Response: `meta` (total, page, perPage, totalPages), `data` (items) |
+| **GET** | `/api/orders` | List orders (paginated). Query: `page` (default 1), `perPage` (default 20, max 100). Response: `meta` (total, page, perPage, totalPages), `data` (items) |
+| **GET** | `/api/orders/{id}` | Get single order by ID. Response: `orderId`, `customerId`, `totalCents`, `paid` (200). 404 if not found |
 
 ## Testing with curl
 
@@ -105,6 +106,7 @@ Run from the project root (api directory):
 | Tool | Command | Description |
 |------|---------|-------------|
 | **PHPUnit** | `./vendor/bin/phpunit` | Run tests |
+| **PHPUnit (coverage)** | `./vendor/bin/phpunit --coverage-html .phpunit.cache/coverage/html` | Run tests with HTML coverage (requires pcov or xdebug) |
 | **PHPStan** | `./vendor/bin/phpstan analyse` | Static analysis |
 | **Rector** | `./vendor/bin/rector process` | Automated refactoring |
 | **ECS** | `./vendor/bin/ecs check` | Code style check |

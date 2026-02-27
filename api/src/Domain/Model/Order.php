@@ -32,6 +32,22 @@ final class Order
         $this->items = $items;
     }
 
+    /**
+     * Factory for reconstituting an Order from persistence (e.g. Doctrine).
+     * Use this instead of the constructor when the order was already paid.
+     *
+     * @param OrderItem[] $items
+     */
+    public static function fromPersistence(OrderId $orderId, string $customerId, array $items, bool $paid): self
+    {
+        $order = new self($orderId, $customerId, $items);
+        if ($paid) {
+            $order->paid = true;
+        }
+
+        return $order;
+    }
+
     public function id(): OrderId
     {
         return $this->orderId;

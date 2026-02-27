@@ -21,8 +21,17 @@ readonly class DoctrineOrderRepository implements OrderRepositoryInterface
     public function save(Order $order): void
     {
         $orderDoctrineEntity = OrderMapper::toPersistence($order);
-        // persist or merge depending on state
-        $this->entityManager->persist($orderDoctrineEntity);
+        $existing = $this->entityManager->find(OrderDoctrineEntity::class, $order->id()->toString());
+
+        if (null !== $existing) {
+            $existing->updateFrom(
+                $orderDoctrineEntity->getCustomerId(),
+                $orderDoctrineEntity->getItems(),
+                $orderDoctrineEntity->isPaid()
+            );
+        } else {
+            $this->entityManager->persist($orderDoctrineEntity);
+        }
         $this->entityManager->flush();
     }
 

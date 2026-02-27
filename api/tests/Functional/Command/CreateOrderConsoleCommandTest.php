@@ -56,4 +56,42 @@ final class CreateOrderConsoleCommandTest extends TestCase
         $this->assertSame(2, $exitCode);
         $this->assertStringContainsString('Invalid item format', $output);
     }
+
+    public function testExecuteNegativeQuantityReturnsFailure(): void
+    {
+        $mockHandler = $this->createMock(CreateOrderHandlerInterface::class);
+        $mockHandler->expects($this->once())->method('handle')->willThrowException(
+            new \InvalidArgumentException('Quantity must be > 0')
+        );
+
+        $createOrderConsoleCommand = new CreateOrderConsoleCommand($mockHandler);
+        $commandTester = new CommandTester($createOrderConsoleCommand);
+
+        $exitCode = $commandTester->execute([
+            'customerId' => 'cust-123',
+            '--item' => ['sku-1:-1:100'],
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Failed to create order', $commandTester->getDisplay());
+    }
+
+    public function testExecuteNegativePriceReturnsFailure(): void
+    {
+        $mockHandler = $this->createMock(CreateOrderHandlerInterface::class);
+        $mockHandler->expects($this->once())->method('handle')->willThrowException(
+            new \InvalidArgumentException('Price must be >= 0')
+        );
+
+        $createOrderConsoleCommand = new CreateOrderConsoleCommand($mockHandler);
+        $commandTester = new CommandTester($createOrderConsoleCommand);
+
+        $exitCode = $commandTester->execute([
+            'customerId' => 'cust-123',
+            '--item' => ['sku-1:1:-100'],
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Failed to create order', $commandTester->getDisplay());
+    }
 }

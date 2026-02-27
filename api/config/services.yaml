@@ -28,6 +28,8 @@ services:
     App\Domain\Repository\OrderRepositoryInterface: '@App\Infrastructure\Persistence\Repository\DoctrineOrderRepository'
     App\Domain\Service\OrderFactoryInterface: '@App\Domain\Service\OrderFactory'
     App\Application\Command\CreateOrderHandlerInterface: '@App\Application\Command\CreateOrderHandler'
+    App\Application\Query\ListOrdersHandlerInterface: '@App\Application\Query\ListOrdersHandler'
+    App\Domain\Event\DomainEventPublisherInterface: '@App\Infrastructure\Event\SymfonyDomainEventPublisher'
 
     App\Domain\Service\:
         resource: '../src/Domain/Service/*'

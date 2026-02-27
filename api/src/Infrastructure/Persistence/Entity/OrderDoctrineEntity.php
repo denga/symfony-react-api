@@ -18,9 +18,6 @@ class OrderDoctrineEntity
         private string $id,
         #[ORM\Column(type: 'string')]
         private string $customerId,
-        /**
-         * @ORM\Column(type="json")
-         */
         #[ORM\Column(type: 'json')]
         private array $items,
         #[ORM\Column(type: 'boolean')]

@@ -31,15 +31,11 @@ final class OrderMapper
             $it['price_cents']
         ), $orderDoctrineEntity->getItems());
 
-        $order = new Order(OrderId::fromString($orderDoctrineEntity->getId()), $orderDoctrineEntity->getCustomerId(), array_values($items));
-        if ($orderDoctrineEntity->isPaid()) {
-            // markPaid uses invariants — but here we reflect persisted state
-            // Option A: use reflection/private setter — simpler: set paid via internal method if allowed
-            $reflectionClass = new \ReflectionClass($order);
-            $prop = $reflectionClass->getProperty('paid');
-            $prop->setValue($order, true);
-        }
-
-        return $order;
+        return Order::fromPersistence(
+            OrderId::fromString($orderDoctrineEntity->getId()),
+            $orderDoctrineEntity->getCustomerId(),
+            array_values($items),
+            $orderDoctrineEntity->isPaid()
+        );
     }
 }
