@@ -31,79 +31,6 @@ flowchart TB
     Models --> Doctrine
 ```
 
-**Request flow (Create Order):**
-
-```mermaid
-flowchart TB
-    subgraph UI [UI Layer]
-        Controller[OrderController]
-        Request[CreateOrderRequest]
-        Response[CreateOrderResponse]
-        RequestMapper[RequestToCommandMapper]
-    end
-    
-    subgraph Application [Application Layer]
-        Handler[CreateOrderHandler]
-        Command[CreateOrderCommand]
-        Result[CreateOrderResult]
-    end
-    
-    subgraph Domain [Domain Layer]
-        OrderFactory[OrderFactory]
-        Order[Order Model]
-        OrderRepo[OrderRepositoryInterface]
-    end
-    
-    subgraph Infrastructure [Infrastructure Layer]
-        DoctrineRepo[DoctrineOrderRepository]
-        OrderEntity[OrderDoctrineEntity]
-        OrderMapper[OrderMapper]
-    end
-    
-    Controller --> RequestMapper
-    RequestMapper --> Handler
-    Handler --> OrderFactory
-    OrderFactory --> Order
-    Handler --> OrderRepo
-    OrderRepo --> DoctrineRepo
-    DoctrineRepo --> OrderMapper
-    OrderMapper --> OrderEntity
-```
-
-**Request flow (List Orders):**
-
-```mermaid
-flowchart TB
-    subgraph UI [UI Layer]
-        ListController[OrderController]
-        ListResponse[OrdersListResponse]
-    end
-    
-    subgraph Application [Application Layer]
-        ListHandler[ListOrdersHandler]
-        ListQuery[ListOrdersQuery]
-        OrderSummary[OrderSummary]
-    end
-    
-    subgraph Domain [Domain Layer]
-        OrderRepo[OrderRepositoryInterface]
-        Order[Order Model]
-    end
-    
-    subgraph Infrastructure [Infrastructure Layer]
-        DoctrineRepo[DoctrineOrderRepository]
-    end
-    
-    ListController --> ListQuery
-    ListController --> ListHandler
-    ListHandler --> ListQuery
-    ListHandler --> OrderRepo
-    OrderRepo --> DoctrineRepo
-    DoctrineRepo --> Order
-    ListHandler --> OrderSummary
-    OrderSummary --> ListResponse
-```
-
 **Layers overview:**
 
 | Layer              | Path                  | Responsibility                                        |
@@ -177,6 +104,7 @@ Run from the project root (api directory):
 
 | Tool | Command | Description |
 |------|---------|-------------|
+| **PHPUnit** | `./vendor/bin/phpunit` | Run tests |
 | **PHPStan** | `./vendor/bin/phpstan analyse` | Static analysis |
 | **Rector** | `./vendor/bin/rector process` | Automated refactoring |
 | **ECS** | `./vendor/bin/ecs check` | Code style check |

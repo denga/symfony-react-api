@@ -26,6 +26,8 @@ services:
 
     # Interface to implementation
     App\Domain\Repository\OrderRepositoryInterface: '@App\Infrastructure\Persistence\Repository\DoctrineOrderRepository'
+    App\Domain\Service\OrderFactoryInterface: '@App\Domain\Service\OrderFactory'
+    App\Application\Command\CreateOrderHandlerInterface: '@App\Application\Command\CreateOrderHandler'
 
     App\Domain\Service\:
         resource: '../src/Domain/Service/*'

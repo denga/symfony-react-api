@@ -6,15 +6,15 @@ namespace App\Application\Command;
 
 use App\Application\DTO\CreateOrderResult;
 use App\Domain\Repository\OrderRepositoryInterface;
-use App\Domain\Service\OrderFactory;
+use App\Domain\Service\OrderFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-final readonly class CreateOrderHandler
+final readonly class CreateOrderHandler implements CreateOrderHandlerInterface
 {
     public function __construct(
         private OrderRepositoryInterface $orderRepository,
-        private OrderFactory $orderFactory,
+        private OrderFactoryInterface $orderFactory,
         private EntityManagerInterface $entityManager,
         private LoggerInterface $logger,
     ) {

@@ -8,7 +8,7 @@ use App\Domain\Model\Order;
 use App\Domain\Model\OrderId;
 use App\Domain\Model\OrderItem;
 
-final class OrderFactory
+final class OrderFactory implements OrderFactoryInterface
 {
     /**
      * @param array<int,array{sku:string,quantity:int,price_cents:int}> $itemsData
