@@ -14,10 +14,10 @@ final readonly class GetOrderHandler
     ) {
     }
 
-    public function handle(GetOrderQuery $query): ?OrderSummary
+    public function handle(GetOrderQuery $getOrderQuery): ?OrderSummary
     {
-        $order = $this->orderRepository->findById($query->orderId);
-        if (null === $order) {
+        $order = $this->orderRepository->findById($getOrderQuery->orderId);
+        if (!$order instanceof \App\Domain\Model\Order) {
             return null;
         }
 

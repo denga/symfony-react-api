@@ -53,6 +53,16 @@ class OrderDoctrineEntity
         $this->paid = true;
     }
 
+    /**
+     * @param array<int, array{sku: string, quantity: int, price_cents: int}> $items
+     */
+    public function updateFrom(string $customerId, array $items, bool $paid): void
+    {
+        $this->customerId = $customerId;
+        $this->items = $items;
+        $this->paid = $paid;
+    }
+
     // Doctrine needs a no-arg constructor for hydration
     public static function forHydration(): self
     {

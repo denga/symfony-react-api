@@ -21,16 +21,23 @@ final class OrderMapperTest extends TestCase
             new OrderItem('SKU-2', 1, 1000),
         ]);
 
-        $entity = OrderMapper::toPersistence($order);
+        $orderDoctrineEntity = OrderMapper::toPersistence($order);
 
-        $this->assertInstanceOf(OrderDoctrineEntity::class, $entity);
-        $this->assertSame('550e8400-e29b-41d4-a716-446655440000', $entity->getId());
-        $this->assertSame('customer-123', $entity->getCustomerId());
-        $this->assertFalse($entity->isPaid());
+        $this->assertSame('550e8400-e29b-41d4-a716-446655440000', $orderDoctrineEntity->getId());
+        $this->assertSame('customer-123', $orderDoctrineEntity->getCustomerId());
+        $this->assertFalse($orderDoctrineEntity->isPaid());
         $this->assertSame([
-            ['sku' => 'SKU-1', 'quantity' => 2, 'price_cents' => 500],
-            ['sku' => 'SKU-2', 'quantity' => 1, 'price_cents' => 1000],
-        ], $entity->getItems());
+            [
+                'sku' => 'SKU-1',
+                'quantity' => 2,
+                'price_cents' => 500,
+            ],
+            [
+                'sku' => 'SKU-2',
+                'quantity' => 1,
+                'price_cents' => 1000,
+            ],
+        ], $orderDoctrineEntity->getItems());
     }
 
     public function testToPersistenceMapsPaidOrder(): void
@@ -38,25 +45,28 @@ final class OrderMapperTest extends TestCase
         $order = new Order(OrderId::generate(), 'customer-456', [new OrderItem('SKU-1', 1, 100)]);
         $order->markPaid();
 
-        $entity = OrderMapper::toPersistence($order);
+        $orderDoctrineEntity = OrderMapper::toPersistence($order);
 
-        $this->assertTrue($entity->isPaid());
+        $this->assertTrue($orderDoctrineEntity->isPaid());
     }
 
     public function testToDomainMapsEntityToOrder(): void
     {
-        $entity = new OrderDoctrineEntity(
+        $orderDoctrineEntity = new OrderDoctrineEntity(
             '550e8400-e29b-41d4-a716-446655440000',
             'customer-123',
             [
-                ['sku' => 'SKU-1', 'quantity' => 2, 'price_cents' => 500],
+                [
+                    'sku' => 'SKU-1',
+                    'quantity' => 2,
+                    'price_cents' => 500,
+                ],
             ],
             false
         );
 
-        $order = OrderMapper::toDomain($entity);
+        $order = OrderMapper::toDomain($orderDoctrineEntity);
 
-        $this->assertInstanceOf(Order::class, $order);
         $this->assertSame('550e8400-e29b-41d4-a716-446655440000', $order->id()->toString());
         $this->assertSame('customer-123', $order->customerId());
         $this->assertFalse($order->isPaid());
@@ -69,14 +79,18 @@ final class OrderMapperTest extends TestCase
 
     public function testToDomainMapsPaidEntityToPaidOrder(): void
     {
-        $entity = new OrderDoctrineEntity(
+        $orderDoctrineEntity = new OrderDoctrineEntity(
             '550e8400-e29b-41d4-a716-446655440000',
             'customer-123',
-            [['sku' => 'SKU-1', 'quantity' => 1, 'price_cents' => 100]],
+            [[
+                'sku' => 'SKU-1',
+                'quantity' => 1,
+                'price_cents' => 100,
+            ]],
             true
         );
 
-        $order = OrderMapper::toDomain($entity);
+        $order = OrderMapper::toDomain($orderDoctrineEntity);
 
         $this->assertTrue($order->isPaid());
     }
@@ -88,8 +102,8 @@ final class OrderMapperTest extends TestCase
         ]);
         $originalOrder->markPaid();
 
-        $entity = OrderMapper::toPersistence($originalOrder);
-        $restoredOrder = OrderMapper::toDomain($entity);
+        $orderDoctrineEntity = OrderMapper::toPersistence($originalOrder);
+        $restoredOrder = OrderMapper::toDomain($orderDoctrineEntity);
 
         $this->assertSame($originalOrder->id()->toString(), $restoredOrder->id()->toString());
         $this->assertSame($originalOrder->customerId(), $restoredOrder->customerId());

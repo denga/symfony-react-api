@@ -12,15 +12,15 @@ final class OrderIdTest extends TestCase
 {
     public function testFromStringAcceptsValidUuid(): void
     {
-        $id = OrderId::fromString('550e8400-e29b-41d4-a716-446655440000');
-        $this->assertSame('550e8400-e29b-41d4-a716-446655440000', $id->toString());
-        $this->assertSame('550e8400-e29b-41d4-a716-446655440000', (string) $id);
+        $orderId = OrderId::fromString('550e8400-e29b-41d4-a716-446655440000');
+        $this->assertSame('550e8400-e29b-41d4-a716-446655440000', $orderId->toString());
+        $this->assertSame('550e8400-e29b-41d4-a716-446655440000', (string) $orderId);
     }
 
     public function testGenerateCreatesValidId(): void
     {
-        $id = OrderId::generate();
-        $this->assertMatchesRegularExpression('/^[0-9a-f\-]{36}$/', $id->toString());
+        $orderId = OrderId::generate();
+        $this->assertMatchesRegularExpression('/^[0-9a-f\-]{36}$/', $orderId->toString());
     }
 
     #[DataProvider('invalidIdProvider')]

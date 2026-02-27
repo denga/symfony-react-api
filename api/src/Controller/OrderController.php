@@ -52,14 +52,14 @@ class OrderController extends AbstractController
         ListOrdersRequest $listOrdersRequest,
     ): JsonResponse {
         $listOrdersQuery = new ListOrdersQuery($listOrdersRequest->page, $listOrdersRequest->perPage);
-        $result = $this->listOrdersHandler->handle($listOrdersQuery);
+        $paginatedResult = $this->listOrdersHandler->handle($listOrdersQuery);
 
-        $items = $this->orderSummaryToResponseMapper->map($result->items);
+        $items = $this->orderSummaryToResponseMapper->map($paginatedResult->items);
         $ordersListResponse = new OrdersListResponse(
             $items,
-            $result->total,
-            $result->page,
-            $result->perPage
+            $paginatedResult->total,
+            $paginatedResult->page,
+            $paginatedResult->perPage
         );
 
         return $this->json($ordersListResponse, 200);
@@ -71,13 +71,17 @@ class OrderController extends AbstractController
         try {
             $orderId = OrderId::fromString($id);
         } catch (\InvalidArgumentException) {
-            return $this->json(['error' => 'Invalid order ID'], 404);
+            return $this->json([
+                'error' => 'Invalid order ID',
+            ], 404);
         }
 
         $summary = $this->getOrderHandler->handle(new GetOrderQuery($orderId));
 
-        if (null === $summary) {
-            return $this->json(['error' => 'Order not found'], 404);
+        if (!$summary instanceof \App\Application\DTO\OrderSummary) {
+            return $this->json([
+                'error' => 'Order not found',
+            ], 404);
         }
 
         return $this->json(new OrderDetailResponse(

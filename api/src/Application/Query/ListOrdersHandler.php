@@ -22,6 +22,7 @@ final readonly class ListOrdersHandler implements ListOrdersHandlerInterface
 
         $result = $this->orderRepository->findPaginated($page, $perPage);
 
+        /** @var list<OrderSummary> $summaries */
         $summaries = array_map(fn ($order) => new OrderSummary(
             $order->id()->toString(),
             $order->customerId(),

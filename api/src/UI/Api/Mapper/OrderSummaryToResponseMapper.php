@@ -16,11 +16,11 @@ final class OrderSummaryToResponseMapper
     public function map(array $summaries): array
     {
         return array_values(array_map(
-            fn (OrderSummary $s): array => [
-                'orderId' => $s->orderId,
-                'customerId' => $s->customerId,
-                'totalCents' => $s->totalCents,
-                'paid' => $s->paid,
+            fn (OrderSummary $orderSummary): array => [
+                'orderId' => $orderSummary->orderId,
+                'customerId' => $orderSummary->customerId,
+                'totalCents' => $orderSummary->totalCents,
+                'paid' => $orderSummary->paid,
             ],
             $summaries
         ));

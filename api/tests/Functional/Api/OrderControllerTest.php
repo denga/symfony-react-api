@@ -11,20 +11,22 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class OrderControllerTest extends WebTestCase
 {
-    private KernelBrowser $client;
-
-    protected function setUp(): void
-    {
-        $this->client = static::createClient();
-        /** @var EntityManagerInterface $em */
-        $em = $this->client->getContainer()->get('doctrine.orm.entity_manager');
-        $schemaTool = new SchemaTool($em);
-        $schemaTool->updateSchema($em->getMetadataFactory()->getAllMetadata());
-    }
+    private KernelBrowser $kernelBrowser;
 
     public function testPostOrdersWithValidBodyReturns201(): void
     {
-        $this->client->request(
+        $body = json_encode([
+            'customerId' => 'customer-test-123',
+            'items' => [
+                [
+                    'sku' => 'SKU-001',
+                    'quantity' => 2,
+                    'price_cents' => 500,
+                ],
+            ],
+        ]);
+        $this->assertNotFalse($body);
+        $this->kernelBrowser->request(
             'POST',
             '/api/orders',
             [],
@@ -32,25 +34,36 @@ final class OrderControllerTest extends WebTestCase
             [
                 'CONTENT_TYPE' => 'application/json',
             ],
-            json_encode([
-                'customerId' => 'customer-test-123',
-                'items' => [
-                    ['sku' => 'SKU-001', 'quantity' => 2, 'price_cents' => 500],
-                ],
-            ])
+            $body
         );
 
         $this->assertResponseStatusCodeSame(201);
-        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $content = $this->kernelBrowser->getResponse()->getContent();
+        $this->assertNotFalse($content);
+        $data = json_decode((string) $content, true);
+        $this->assertIsArray($data);
         $this->assertArrayHasKey('orderId', $data);
         $this->assertArrayHasKey('orderUrl', $data);
+        $this->assertIsString($data['orderUrl']);
         $this->assertStringContainsString('/api/orders/', $data['orderUrl']);
+        $this->assertIsString($data['orderId']);
         $this->assertSame($data['orderId'], basename($data['orderUrl']));
     }
 
     public function testPostOrdersWithInvalidBodyReturns422(): void
     {
-        $this->client->request(
+        $body = json_encode([
+            'customerId' => 'customer-test',
+            'items' => [
+                [
+                    'sku' => 'SKU-001',
+                    'quantity' => -1,
+                    'price_cents' => 100,
+                ],
+            ],
+        ]);
+        $this->assertNotFalse($body);
+        $this->kernelBrowser->request(
             'POST',
             '/api/orders',
             [],
@@ -58,12 +71,7 @@ final class OrderControllerTest extends WebTestCase
             [
                 'CONTENT_TYPE' => 'application/json',
             ],
-            json_encode([
-                'customerId' => 'customer-test',
-                'items' => [
-                    ['sku' => 'SKU-001', 'quantity' => -1, 'price_cents' => 100],
-                ],
-            ])
+            $body
         );
 
         $this->assertResponseStatusCodeSame(422);
@@ -71,12 +79,16 @@ final class OrderControllerTest extends WebTestCase
 
     public function testGetOrdersReturns200WithPaginationStructure(): void
     {
-        $this->client->request('GET', '/api/orders?page=1&perPage=20');
+        $this->kernelBrowser->request('GET', '/api/orders?page=1&perPage=20');
 
         $this->assertResponseStatusCodeSame(200);
-        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $content = $this->kernelBrowser->getResponse()->getContent();
+        $this->assertNotFalse($content);
+        $data = json_decode((string) $content, true);
+        $this->assertIsArray($data);
         $this->assertArrayHasKey('meta', $data);
         $this->assertArrayHasKey('data', $data);
+        $this->assertIsArray($data['meta']);
         $this->assertArrayHasKey('total', $data['meta']);
         $this->assertArrayHasKey('page', $data['meta']);
         $this->assertArrayHasKey('perPage', $data['meta']);
@@ -86,19 +98,34 @@ final class OrderControllerTest extends WebTestCase
 
     public function testGetOrderReturns200(): void
     {
-        $this->client->request('POST', '/api/orders', [], [], ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'customerId' => 'customer-get-test',
-                'items' => [['sku' => 'SKU-001', 'quantity' => 1, 'price_cents' => 100]],
-            ]));
+        $body = json_encode([
+            'customerId' => 'customer-get-test',
+            'items' => [[
+                'sku' => 'SKU-001',
+                'quantity' => 1,
+                'price_cents' => 100,
+            ]],
+        ]);
+        $this->assertNotFalse($body);
+        $this->kernelBrowser->request('POST', '/api/orders', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], $body);
         $this->assertResponseStatusCodeSame(201);
-        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $content = $this->kernelBrowser->getResponse()->getContent();
+        $this->assertNotFalse($content);
+        $data = json_decode((string) $content, true);
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('orderId', $data);
+        $this->assertIsString($data['orderId']);
         $orderId = $data['orderId'];
 
-        $this->client->request('GET', '/api/orders/'.$orderId);
+        $this->kernelBrowser->request('GET', '/api/orders/'.$orderId);
 
         $this->assertResponseStatusCodeSame(200);
-        $getData = json_decode($this->client->getResponse()->getContent(), true);
+        $getContent = $this->kernelBrowser->getResponse()->getContent();
+        $this->assertNotFalse($getContent);
+        $getData = json_decode((string) $getContent, true);
+        $this->assertIsArray($getData);
         $this->assertSame($orderId, $getData['orderId']);
         $this->assertSame('customer-get-test', $getData['customerId']);
         $this->assertSame(100, $getData['totalCents']);
@@ -107,14 +134,25 @@ final class OrderControllerTest extends WebTestCase
 
     public function testGetOrderNotFoundReturns404(): void
     {
-        $this->client->request('GET', '/api/orders/550e8400-e29b-41d4-a716-446655440000');
+        $this->kernelBrowser->request('GET', '/api/orders/550e8400-e29b-41d4-a716-446655440000');
 
         $this->assertResponseStatusCodeSame(404);
     }
 
     public function testPostOrdersWithBlankSkuReturns422(): void
     {
-        $this->client->request(
+        $body = json_encode([
+            'customerId' => 'customer-test',
+            'items' => [
+                [
+                    'sku' => '',
+                    'quantity' => 1,
+                    'price_cents' => 100,
+                ],
+            ],
+        ]);
+        $this->assertNotFalse($body);
+        $this->kernelBrowser->request(
             'POST',
             '/api/orders',
             [],
@@ -122,14 +160,18 @@ final class OrderControllerTest extends WebTestCase
             [
                 'CONTENT_TYPE' => 'application/json',
             ],
-            json_encode([
-                'customerId' => 'customer-test',
-                'items' => [
-                    ['sku' => '', 'quantity' => 1, 'price_cents' => 100],
-                ],
-            ])
+            $body
         );
 
         $this->assertResponseStatusCodeSame(422);
+    }
+
+    protected function setUp(): void
+    {
+        $this->kernelBrowser = self::createClient();
+        /** @var EntityManagerInterface $em */
+        $em = $this->kernelBrowser->getContainer()->get('doctrine.orm.entity_manager');
+        $schemaTool = new SchemaTool($em);
+        $schemaTool->updateSchema($em->getMetadataFactory()->getAllMetadata());
     }
 }

@@ -14,6 +14,9 @@ final class OrderDetailResponse implements \JsonSerializable
     ) {
     }
 
+    /**
+     * @return array{orderId: string, customerId: string, totalCents: int, paid: bool}
+     */
     public function jsonSerialize(): array
     {
         return [

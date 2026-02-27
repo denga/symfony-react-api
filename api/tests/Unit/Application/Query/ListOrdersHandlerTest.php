@@ -35,13 +35,13 @@ final class ListOrdersHandlerTest extends TestCase
         $listOrdersQuery = new ListOrdersQuery(1, 10);
 
         // Act
-        $result = $listOrdersHandler->handle($listOrdersQuery);
+        $paginatedResult = $listOrdersHandler->handle($listOrdersQuery);
 
         // Assert
-        $this->assertCount(1, $result->items);
-        $this->assertEquals(1, $result->total);
+        $this->assertCount(1, $paginatedResult->items);
+        $this->assertEquals(1, $paginatedResult->total);
 
-        $summary = $result->items[0];
+        $summary = $paginatedResult->items[0];
         $this->assertEquals($orderId->toString(), $summary->orderId);
         $this->assertEquals('cust-1', $summary->customerId);
         $this->assertEquals(2000, $summary->totalCents); // 2 * 1000

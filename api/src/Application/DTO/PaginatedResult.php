@@ -6,11 +6,12 @@ namespace App\Application\DTO;
 
 /**
  * @template T
- *
- * @param T[] $items
  */
 final readonly class PaginatedResult
 {
+    /**
+     * @param array<int, T> $items
+     */
     public function __construct(
         public array $items,
         public int $total,
