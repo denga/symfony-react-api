@@ -10,7 +10,6 @@ use App\Application\Query\GetOrderHandler;
 use App\Application\Query\GetOrderQuery;
 use App\Application\Query\ListOrdersHandlerInterface;
 use App\Application\Query\ListOrdersQuery;
-use App\Domain\Model\OrderId;
 use App\UI\Api\Mapper\OrderSummaryToResponseMapper;
 use App\UI\Api\Mapper\RequestToCommandMapper;
 use App\UI\Api\Request\CreateOrderRequest;
@@ -69,15 +68,7 @@ class OrderController extends AbstractController
     #[Route('/api/orders/{id}', name: 'api_get_order', methods: ['GET'])]
     public function get(string $id): JsonResponse
     {
-        try {
-            $orderId = OrderId::fromString($id);
-        } catch (\InvalidArgumentException) {
-            return $this->json([
-                'error' => 'Invalid order ID',
-            ], 404);
-        }
-
-        $summary = $this->getOrderHandler->handle(new GetOrderQuery($orderId));
+        $summary = $this->getOrderHandler->handle(new GetOrderQuery($id));
 
         if (! $summary instanceof OrderSummary) {
             return $this->json([

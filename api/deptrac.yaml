@@ -29,8 +29,6 @@ deptrac:
           collectors:
               - type: directory
                 value: src/Domain
-              - type: classLike
-                value: .*Domain.*
 
         - name: Infrastructure
           collectors:

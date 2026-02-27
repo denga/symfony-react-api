@@ -140,6 +140,13 @@ final class OrderControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(404);
     }
 
+    public function testGetOrderWithInvalidIdFormatReturns404(): void
+    {
+        $this->kernelBrowser->request(Request::METHOD_GET, '/api/orders/invalid-id');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
     public function testPostOrdersWithBlankSkuReturns422(): void
     {
         $body = json_encode([
