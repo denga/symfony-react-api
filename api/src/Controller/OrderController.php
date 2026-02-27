@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Application\Command\CreateOrderHandlerInterface;
+use App\Application\DTO\OrderSummary;
 use App\Application\Query\GetOrderHandler;
 use App\Application\Query\GetOrderQuery;
 use App\Application\Query\ListOrdersHandlerInterface;
@@ -78,7 +79,7 @@ class OrderController extends AbstractController
 
         $summary = $this->getOrderHandler->handle(new GetOrderQuery($orderId));
 
-        if (!$summary instanceof \App\Application\DTO\OrderSummary) {
+        if (! $summary instanceof OrderSummary) {
             return $this->json([
                 'error' => 'Order not found',
             ], 404);

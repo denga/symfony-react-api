@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 final class OrderControllerTest extends WebTestCase
 {
@@ -27,7 +28,7 @@ final class OrderControllerTest extends WebTestCase
         ]);
         $this->assertNotFalse($body);
         $this->kernelBrowser->request(
-            'POST',
+            Request::METHOD_POST,
             '/api/orders',
             [],
             [],
@@ -64,7 +65,7 @@ final class OrderControllerTest extends WebTestCase
         ]);
         $this->assertNotFalse($body);
         $this->kernelBrowser->request(
-            'POST',
+            Request::METHOD_POST,
             '/api/orders',
             [],
             [],
@@ -79,7 +80,7 @@ final class OrderControllerTest extends WebTestCase
 
     public function testGetOrdersReturns200WithPaginationStructure(): void
     {
-        $this->kernelBrowser->request('GET', '/api/orders?page=1&perPage=20');
+        $this->kernelBrowser->request(Request::METHOD_GET, '/api/orders?page=1&perPage=20');
 
         $this->assertResponseStatusCodeSame(200);
         $content = $this->kernelBrowser->getResponse()->getContent();
@@ -107,7 +108,7 @@ final class OrderControllerTest extends WebTestCase
             ]],
         ]);
         $this->assertNotFalse($body);
-        $this->kernelBrowser->request('POST', '/api/orders', [], [], [
+        $this->kernelBrowser->request(Request::METHOD_POST, '/api/orders', [], [], [
             'CONTENT_TYPE' => 'application/json',
         ], $body);
         $this->assertResponseStatusCodeSame(201);
@@ -119,7 +120,7 @@ final class OrderControllerTest extends WebTestCase
         $this->assertIsString($data['orderId']);
         $orderId = $data['orderId'];
 
-        $this->kernelBrowser->request('GET', '/api/orders/'.$orderId);
+        $this->kernelBrowser->request(Request::METHOD_GET, '/api/orders/'.$orderId);
 
         $this->assertResponseStatusCodeSame(200);
         $getContent = $this->kernelBrowser->getResponse()->getContent();
@@ -134,7 +135,7 @@ final class OrderControllerTest extends WebTestCase
 
     public function testGetOrderNotFoundReturns404(): void
     {
-        $this->kernelBrowser->request('GET', '/api/orders/550e8400-e29b-41d4-a716-446655440000');
+        $this->kernelBrowser->request(Request::METHOD_GET, '/api/orders/550e8400-e29b-41d4-a716-446655440000');
 
         $this->assertResponseStatusCodeSame(404);
     }
@@ -153,7 +154,7 @@ final class OrderControllerTest extends WebTestCase
         ]);
         $this->assertNotFalse($body);
         $this->kernelBrowser->request(
-            'POST',
+            Request::METHOD_POST,
             '/api/orders',
             [],
             [],
