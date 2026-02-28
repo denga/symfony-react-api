@@ -4,16 +4,32 @@ declare(strict_types=1);
 
 namespace App\UI\Api\Request;
 
+use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Constraints as Assert;
 
+#[OA\Schema(
+    title: 'CreateOrderRequest',
+    description: 'Request schema for creating an order',
+    required: ['customerId', 'items'],
+)]
 final class CreateOrderRequest
 {
+    #[OA\Property(description: 'Customer ID', example: 'customer-test-123')]
     #[Assert\NotBlank]
     public ?string $customerId = null;
 
     /**
      * @var array<int, array{sku: string, quantity: int, price_cents: int}>
      */
+    #[OA\Property(type: 'array', items: new OA\Items(properties: [
+        new OA\Property(property: 'sku', type: 'string'),
+        new OA\Property(property: 'quantity', type: 'integer'),
+        new OA\Property(property: 'price_cents', type: 'integer'),
+    ], type: 'object', example: [
+        'sku' => 'sku-123',
+        'quantity' => 1,
+        'price_cents' => 1000,
+    ]))]
     #[Assert\NotNull]
     #[Assert\Count(min: 1, minMessage: 'Order must contain at least one item.')]
     #[Assert\All([

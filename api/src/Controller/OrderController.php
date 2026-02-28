@@ -17,12 +17,15 @@ use App\UI\Api\Request\ListOrdersRequest;
 use App\UI\Api\Response\CreateOrderResponse;
 use App\UI\Api\Response\OrderDetailResponse;
 use App\UI\Api\Response\OrdersListResponse;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[OA\Tag(name: 'Orders', description: 'Operations to create and list orders')]
 class OrderController extends AbstractController
 {
     public function __construct(
@@ -35,6 +38,10 @@ class OrderController extends AbstractController
     }
 
     #[Route('/api/orders', name: 'api_create_order', methods: ['POST'])]
+    #[OA\Response(response: 201, description: 'Order created', content: new OA\JsonContent(ref: new Model(type: CreateOrderResponse::class)))]
+    #[OA\Response(response: 400, description: 'Bad request')]
+    #[OA\Response(response: 422, description: 'Validation failed')]
+    #[OA\Response(response: 500, description: 'Service unavailable')]
     public function create(
         #[MapRequestPayload]
         CreateOrderRequest $createOrderRequest,
@@ -47,6 +54,7 @@ class OrderController extends AbstractController
     }
 
     #[Route('/api/orders', name: 'api_list_orders', methods: ['GET'])]
+    #[OA\Response(response: 200, description: 'Orders list', content: new OA\JsonContent(ref: new Model(type: OrdersListResponse::class)))]
     public function list(
         #[MapQueryString]
         ListOrdersRequest $listOrdersRequest,
@@ -66,6 +74,8 @@ class OrderController extends AbstractController
     }
 
     #[Route('/api/orders/{id}', name: 'api_get_order', methods: ['GET'])]
+    #[OA\Parameter(name: 'id', description: 'Order ID', in: 'path', required: true, schema: new OA\Schema(type: 'string'), example: 'order-123')]
+    #[OA\Response(response: 200, description: 'Order details', content: new OA\JsonContent(ref: new Model(type: OrderDetailResponse::class)))]
     public function get(string $id): JsonResponse
     {
         $summary = $this->getOrderHandler->handle(new GetOrderQuery($id));
