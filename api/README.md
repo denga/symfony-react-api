@@ -112,3 +112,17 @@ Run from the project root (api directory):
 | **ECS** | `./vendor/bin/ecs check` | Code style check |
 | **ECS** | `./vendor/bin/ecs fix` | Apply code style fixes |
 | **Deptrac** | `./vendor/bin/deptrac analyse` | Architecture dependency analysis |
+| **Schemathesis** | see below | Property-based API testing against OpenAPI schema |
+
+### Schemathesis (API Contract Testing)
+
+Schemathesis tests the API against its OpenAPI schema. **Voraussetzung:** Die API muss lokal laufen (z.B. via `docker compose up`).
+
+```bash
+docker run --rm --network host schemathesis/schemathesis run \
+  https://localhost/api/doc.json --tls-verify=false
+```
+
+- `--network host` – Container nutzt Host-Netzwerk, damit `localhost` die laufende API erreicht
+- `--tls-verify=false` – Deaktiviert TLS-Prüfung für selbstsignierte Zertifikate
+- Optional: `--max-examples 20` – Weniger Testfälle pro Operation

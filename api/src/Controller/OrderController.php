@@ -55,8 +55,9 @@ class OrderController extends AbstractController
 
     #[Route('/api/orders', name: 'api_list_orders', methods: ['GET'])]
     #[OA\Response(response: 200, description: 'Orders list', content: new OA\JsonContent(ref: new Model(type: OrdersListResponse::class)))]
+    #[OA\Response(response: 422, description: 'Validation failed (e.g. page or perPage out of range)')]
     public function list(
-        #[MapQueryString]
+        #[MapQueryString(validationFailedStatusCode: 422)]
         ListOrdersRequest $listOrdersRequest,
     ): JsonResponse {
         $listOrdersQuery = new ListOrdersQuery($listOrdersRequest->page, $listOrdersRequest->perPage);
@@ -76,6 +77,7 @@ class OrderController extends AbstractController
     #[Route('/api/orders/{id}', name: 'api_get_order', methods: ['GET'])]
     #[OA\Parameter(name: 'id', description: 'Order ID', in: 'path', required: true, schema: new OA\Schema(type: 'string'), example: 'order-123')]
     #[OA\Response(response: 200, description: 'Order details', content: new OA\JsonContent(ref: new Model(type: OrderDetailResponse::class)))]
+    #[OA\Response(response: 404, description: 'Order not found')]
     public function get(string $id): JsonResponse
     {
         $summary = $this->getOrderHandler->handle(new GetOrderQuery($id));

@@ -34,10 +34,10 @@ final readonly class OrdersListResponse implements \JsonSerializable
      * @param array<int, array{orderId: string, customerId: string, totalCents: int, paid: bool}> $items
      */
     public function __construct(
-        public array $items,
-        public int $total,
-        public int $page,
-        public int $perPage,
+        private array $items,
+        private int $total,
+        private int $page,
+        private int $perPage,
     ) {
     }
 

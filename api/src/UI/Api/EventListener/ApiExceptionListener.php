@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\PropertyAccess\Exception\InvalidPropertyPathException;
+use Symfony\Component\Serializer\Exception\PartialDenormalizationException;
 
 /**
  * Translates exceptions to JSON error responses.
@@ -60,6 +62,12 @@ final readonly class ApiExceptionListener implements EventSubscriberInterface
             $payload['error']['violations'] = $throwable->getViolations(); // array of ['path'=>..., 'message'=>...]
         }
 
+        // Serializer/PropertyAccess errors (e.g. malformed JSON, invalid structure, null in arrays) -> 422
+        if ($throwable instanceof InvalidPropertyPathException || $throwable instanceof PartialDenormalizationException || $throwable instanceof \TypeError) {
+            $status = 422;
+            $payload['error']['message'] = 'Invalid request structure';
+        }
+
         // If debug, include trace
         if ($this->debug) {
             $payload['error']['exception'] = [
@@ -72,6 +80,17 @@ final readonly class ApiExceptionListener implements EventSubscriberInterface
         }
 
         $jsonResponse = new JsonResponse($payload, $status);
+        if ($throwable instanceof HttpExceptionInterface) {
+            foreach ($throwable->getHeaders() as $key => $value) {
+                if (is_string($value)) {
+                    $jsonResponse->headers->set($key, $value);
+                } elseif (is_array($value)) {
+                    /** @var array<string> $stringValues */
+                    $stringValues = array_values(array_map(static fn (mixed $v): string => is_scalar($v) ? (string) $v : '', $value));
+                    $jsonResponse->headers->set($key, $stringValues);
+                }
+            }
+        }
         $exceptionEvent->setResponse($jsonResponse);
 
         // log server errors
