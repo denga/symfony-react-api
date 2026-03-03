@@ -15,12 +15,16 @@ function About() {
         />
         <p className="island-kicker mb-2">About</p>
         <h1 className="display-title mb-3 text-4xl font-bold text-[var(--sea-ink)] sm:text-5xl">
-          Built for shipping fast.
+          Über die Orders App
         </h1>
         <p className="m-0 max-w-3xl text-base leading-8 text-[var(--sea-ink-soft)]">
-          TanStack Start gives you type-safe routing, server functions, and
-          modern SSR defaults so you can focus on product work instead of
-          framework glue.
+          Die Orders App ermöglicht die Verwaltung von Bestellungen über eine
+          moderne React-Oberfläche. Sie ist an ein Symfony-Backend angebunden und
+          nutzt die API-Endpunkte zum Erstellen, Auflisten und Abrufen von
+          Orders. Die App verwendet TanStack Router für type-sicheres Routing,
+          TanStack Query für effiziente API-Aufrufe, TanStack Table für die
+          übersichtliche Darstellung der Order-Liste und TanStack Form für das
+          Erstellen neuer Bestellungen mit dynamischen Artikeln.
         </p>
       </section>
     </main>
