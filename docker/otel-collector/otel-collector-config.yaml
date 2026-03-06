@@ -11,7 +11,7 @@ processors:
         send_batch_size: 1024
 exporters:
     otlp_grpc/jaeger:
-        endpoint: jaeger:14250
+        endpoint: jaeger:4317
         tls:
             insecure: true
     otlp_grpc/tempo:
