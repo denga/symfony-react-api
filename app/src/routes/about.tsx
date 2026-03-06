@@ -27,6 +27,49 @@ function About() {
           Erstellen neuer Bestellungen mit dynamischen Artikeln.
         </p>
       </section>
+
+      <section className="mt-8">
+        <p className="island-kicker mb-4">Services</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              name: 'API Docs',
+              description: 'OpenAPI / Swagger documentation',
+              href: 'https://app.local.gd/api/doc',
+            },
+            {
+              name: 'Grafana',
+              description: 'Dashboards, metrics & logs',
+              href: 'https://grafana.local.gd',
+            },
+            {
+              name: 'Jaeger',
+              description: 'Distributed tracing UI',
+              href: 'https://jaeger.local.gd',
+            },
+            {
+              name: 'Prometheus',
+              description: 'Metrics & alerting',
+              href: 'https://prometheus.local.gd',
+            },
+          ].map((service) => (
+            <a
+              key={service.name}
+              href={service.href}
+              target="_blank"
+              rel="noreferrer"
+              className="island-shell flex flex-col gap-1 rounded-2xl p-5 no-underline transition hover:shadow-lg"
+            >
+              <span className="text-sm font-semibold text-[var(--sea-ink)]">
+                {service.name}
+              </span>
+              <span className="text-xs text-[var(--sea-ink-soft)]">
+                {service.description}
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
     </main>
   )
 }
