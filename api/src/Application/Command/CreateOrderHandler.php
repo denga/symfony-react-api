@@ -24,16 +24,20 @@ final readonly class CreateOrderHandler implements CreateOrderHandlerInterface
 
     public function handle(CreateOrderCommand $createOrderCommand): CreateOrderResult
     {
+        $this->logger->info('Creating order', [
+            'customerId' => $createOrderCommand->customerId,
+            'itemCount' => \count($createOrderCommand->items),
+        ]);
+
         $this->entityManager->beginTransaction();
         try {
-            // Create domain entity
             $order = $this->orderFactory->createNew($createOrderCommand->customerId, $createOrderCommand->items);
 
-            // Persist using repository (infrastructure implements)
             $this->orderRepository->save($order);
 
-            // commit
             $this->entityManager->commit();
+
+            $this->logger->info('Order created successfully', ['orderId' => $order->id()->toString()]);
 
             foreach ($order->releaseEvents() as $event) {
                 $this->domainEventPublisher->publish($event);

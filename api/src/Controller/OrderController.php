@@ -19,6 +19,7 @@ use App\UI\Api\Response\OrderDetailResponse;
 use App\UI\Api\Response\OrdersListResponse;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
@@ -34,6 +35,7 @@ class OrderController extends AbstractController
         private readonly CreateOrderHandlerInterface $createOrderHandler,
         private readonly ListOrdersHandlerInterface $listOrdersHandler,
         private readonly GetOrderHandler $getOrderHandler,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -50,6 +52,8 @@ class OrderController extends AbstractController
         $createOrderResult = $this->createOrderHandler->handle($createOrderCommand);
         $createOrderResponse = new CreateOrderResponse($createOrderResult->orderId, '/api/orders/'.$createOrderResult->orderId);
 
+        $this->logger->info('Order created via API', ['orderId' => $createOrderResult->orderId]);
+
         return $this->json($createOrderResponse, 201);
     }
 
@@ -60,6 +64,8 @@ class OrderController extends AbstractController
         #[MapQueryString(validationFailedStatusCode: 422)]
         ListOrdersRequest $listOrdersRequest,
     ): JsonResponse {
+        $this->logger->info('Listing orders', ['page' => $listOrdersRequest->page, 'perPage' => $listOrdersRequest->perPage]);
+
         $listOrdersQuery = new ListOrdersQuery($listOrdersRequest->page, $listOrdersRequest->perPage);
         $paginatedResult = $this->listOrdersHandler->handle($listOrdersQuery);
 
@@ -80,9 +86,13 @@ class OrderController extends AbstractController
     #[OA\Response(response: 404, description: 'Order not found')]
     public function get(string $id): JsonResponse
     {
+        $this->logger->info('Fetching order', ['id' => $id]);
+
         $summary = $this->getOrderHandler->handle(new GetOrderQuery($id));
 
         if (! $summary instanceof OrderSummary) {
+            $this->logger->warning('Order not found', ['id' => $id]);
+
             return $this->json([
                 'error' => 'Order not found',
             ], 404);

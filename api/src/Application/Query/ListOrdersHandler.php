@@ -7,11 +7,13 @@ namespace App\Application\Query;
 use App\Application\DTO\OrderSummary;
 use App\Application\DTO\PaginatedResult;
 use App\Domain\Repository\OrderRepositoryInterface;
+use Psr\Log\LoggerInterface;
 
 final readonly class ListOrdersHandler implements ListOrdersHandlerInterface
 {
     public function __construct(
         private OrderRepositoryInterface $orderRepository,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -29,6 +31,8 @@ final readonly class ListOrdersHandler implements ListOrdersHandlerInterface
             $order->totalCents(),
             $order->isPaid()
         ), $result['items']);
+
+        $this->logger->info('Querying orders', ['page' => $page, 'perPage' => $perPage, 'totalItems' => $result['total']]);
 
         return new PaginatedResult($summaries, $result['total'], $page, $perPage);
     }

@@ -93,10 +93,15 @@ final readonly class ApiExceptionListener implements EventSubscriberInterface
         }
         $exceptionEvent->setResponse($jsonResponse);
 
-        // log server errors
         if ($status >= 500) {
             $this->logger->error('Unhandled exception caught by ApiExceptionListener', [
                 'exception' => $throwable,
+            ]);
+        } elseif ($status >= 400) {
+            $this->logger->warning('Client error', [
+                'status' => $status,
+                'message' => $throwable->getMessage(),
+                'type' => $throwable::class,
             ]);
         }
     }

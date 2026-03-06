@@ -10,16 +10,20 @@ use App\Domain\Repository\OrderRepositoryInterface;
 use App\Infrastructure\Persistence\Entity\OrderDoctrineEntity;
 use App\Infrastructure\Persistence\Mapper\OrderMapper;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 readonly class DoctrineOrderRepository implements OrderRepositoryInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger,
     ) {
     }
 
     public function save(Order $order): void
     {
+        $this->logger->debug('Persisting order', ['orderId' => $order->id()->toString()]);
+
         $orderDoctrineEntity = OrderMapper::toPersistence($order);
         $existing = $this->entityManager->find(OrderDoctrineEntity::class, $order->id()->toString());
 
@@ -47,6 +51,8 @@ readonly class DoctrineOrderRepository implements OrderRepositoryInterface
 
     public function findPaginated(int $page, int $perPage): array
     {
+        $this->logger->debug('Querying paginated orders', ['offset' => max(0, ($page - 1) * $perPage), 'limit' => $perPage]);
+
         $queryBuilder = $this->entityManager->createQueryBuilder()
             ->select('o')
             ->from(OrderDoctrineEntity::class, 'o')

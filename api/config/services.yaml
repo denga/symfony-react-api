@@ -54,3 +54,16 @@ services:
 
     App\Command\CreateOrderConsoleCommand:
         tags: ['console.command']
+
+    Monolog\Processor\PsrLogMessageProcessor:
+        tags:
+            - { name: monolog.processor }
+
+    OpenTelemetry\API\Logs\LoggerProviderInterface:
+        factory: ['OpenTelemetry\API\Globals', 'loggerProvider']
+
+    app.otel_log_handler:
+        class: OpenTelemetry\Contrib\Logs\Monolog\Handler
+        arguments:
+            $loggerProvider: '@OpenTelemetry\API\Logs\LoggerProviderInterface'
+            $level: !php/const Monolog\Level::Info
