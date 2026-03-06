@@ -63,6 +63,14 @@ function OrdersIndex() {
   const { page, perPage } = useSearch({ from: '/orders/' })
   const { data, isPending, isError, error } = useOrdersList({ page, perPage })
 
+  const orders = data?.data ?? []
+  const meta = data?.meta
+  const table = useReactTable({
+    data: orders,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
   if (isPending) {
     return (
       <main className="page-wrap px-4 pb-8 pt-14">
@@ -82,13 +90,6 @@ function OrdersIndex() {
       </main>
     )
   }
-
-  const { meta, data: orders } = data
-  const table = useReactTable({
-    data: orders,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
 
   return (
     <main className="page-wrap px-4 pb-8 pt-14">
@@ -151,7 +152,7 @@ function OrdersIndex() {
           </TableBody>
         </Table>
 
-        {meta.totalPages > 1 && (
+        {meta && meta.totalPages > 1 && (
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--line)] px-4 py-3">
             <p className="text-sm text-[var(--sea-ink-soft)]">
               Page {meta.page} of {meta.totalPages} ({meta.total} total)

@@ -78,6 +78,28 @@ final class OrderControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(422);
     }
 
+    public function testGetOrdersWithoutQueryParamsReturns200(): void
+    {
+        $this->kernelBrowser->request(Request::METHOD_GET, '/api/orders');
+
+        $this->assertResponseStatusCodeSame(200);
+        $content = $this->kernelBrowser->getResponse()->getContent();
+        $this->assertNotFalse($content);
+        $data = json_decode((string) $content, true);
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('meta', $data);
+        $this->assertArrayHasKey('data', $data);
+        $this->assertSame(1, $data['meta']['page']);
+        $this->assertSame(20, $data['meta']['perPage']);
+    }
+
+    public function testGetOrdersWithInvalidPageReturns422(): void
+    {
+        $this->kernelBrowser->request(Request::METHOD_GET, '/api/orders?page=0&perPage=20');
+
+        $this->assertResponseStatusCodeSame(422);
+    }
+
     public function testGetOrdersReturns200WithPaginationStructure(): void
     {
         $this->kernelBrowser->request(Request::METHOD_GET, '/api/orders?page=1&perPage=20');
