@@ -11,7 +11,7 @@ const config = defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://localhost',
+        target: process.env.API_PROXY_TARGET ?? 'https://localhost',
         changeOrigin: true,
         secure: false,
       },

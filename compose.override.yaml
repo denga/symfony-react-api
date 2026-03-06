@@ -1,0 +1,47 @@
+---
+# =============================================================================
+# Development overrides – auto-loaded by `docker compose up`
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # API
+  # ---------------------------------------------------------------------------
+  php:
+    build:
+      context: ./api
+      target: frankenphp_dev
+    volumes:
+      - ./api:/app
+      - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
+      - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
+    environment:
+      FRANKENPHP_WORKER_CONFIG: watch
+      MERCURE_EXTRA_DIRECTIVES: demo
+      XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+      APP_ENV: "${APP_ENV:-dev}"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    tty: true
+
+  # ---------------------------------------------------------------------------
+  # Database – expose port to host for local tooling
+  # ---------------------------------------------------------------------------
+  database:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  # ---------------------------------------------------------------------------
+  # Frontend – dev server with hot reload
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: ./app
+      target: dev
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    environment:
+      API_URL: http://php
+      API_PROXY_TARGET: http://php

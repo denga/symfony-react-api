@@ -1,4 +1,8 @@
 ---
+# DEPRECATED: This file is kept for reference only.
+# The active compose configuration lives at the project root:
+#   compose.yaml / compose.override.yaml / compose.prod.yaml
+
 services:
   php:
     image: ${IMAGES_PREFIX:-}app-php

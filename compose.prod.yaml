@@ -1,0 +1,36 @@
+---
+# =============================================================================
+# Production overrides
+# Usage: docker compose -f compose.yaml -f compose.prod.yaml up -d --build
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # API
+  # ---------------------------------------------------------------------------
+  php:
+    build:
+      context: ./api
+      target: frankenphp_prod
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+
+  # ---------------------------------------------------------------------------
+  # Frontend – pre-built production image
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: ./app
+      target: production
+    environment:
+      NODE_ENV: production
+      API_URL: http://php
+
+  # ---------------------------------------------------------------------------
+  # Database – no host port exposed
+  # ---------------------------------------------------------------------------
+  database:
+    restart: unless-stopped

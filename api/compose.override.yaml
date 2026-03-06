@@ -1,5 +1,9 @@
 ---
-# Development environment override
+# DEPRECATED: This file is kept for reference only.
+# The active compose configuration lives at the project root:
+#   compose.yaml / compose.override.yaml / compose.prod.yaml
+#
+# Development environment override (original)
 services:
   php:
     build:
