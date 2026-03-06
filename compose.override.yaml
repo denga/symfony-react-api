@@ -44,4 +44,3 @@ services:
       - /app/node_modules
     environment:
       API_URL: http://php
-      API_PROXY_TARGET: http://php

@@ -1,25 +1,28 @@
 # Symfony React API
 
-Full-stack monorepo with a **Symfony API** (FrankenPHP), a **React frontend** (TanStack Start / Vite), and a complete **observability stack** (OpenTelemetry, Grafana, Prometheus, Tempo, Loki, Jaeger).
+Full-stack monorepo with a **Symfony API** (FrankenPHP), a **React frontend** (TanStack Start / Vite), and a complete **observability stack** (OpenTelemetry, Grafana, Prometheus, Tempo, Loki, Jaeger). All services are accessible through a single **Caddy reverse proxy**.
 
 ## Architecture
 
 ```
-                    ┌────────────────┐
-                    │   Frontend     │
-                    │  (TanStack     │
-                    │   Start SSR)   │
-                    └───────┬────────┘
-                            │ /api
-                    ┌───────▼────────┐
-                    │      API       │
-                    │  (Symfony /    │
-                    │  FrankenPHP)   │
-                    └───────┬────────┘
-                            │
-                    ┌───────▼────────┐
-                    │   PostgreSQL   │
-                    └────────────────┘
+                         ┌──────────────────┐
+                         │  Caddy Reverse   │
+              Browser ──►│  Proxy :80/:443  │
+                         └────────┬─────────┘
+                                  │
+                 ┌────────────────┼────────────────┐
+                 │                │                 │
+          /api/* │          /     │  *.local.gd      │
+                 ▼                ▼                  ▼
+         ┌──────────────┐ ┌──────────────┐  ┌──────────────┐
+         │     API      │ │   Frontend   │  │ Observability│
+         │  (Symfony /  │ │  (TanStack   │  │  (Grafana,   │
+         │  FrankenPHP) │ │  Start SSR)  │  │  Jaeger ...) │
+         └──────┬───────┘ └──────────────┘  └──────────────┘
+                │
+         ┌──────▼───────┐
+         │  PostgreSQL  │
+         └──────────────┘
 
   Traces & logs ──► OTEL Collector ──► Tempo / Loki / Prometheus ──► Grafana
                                    └──► Jaeger
@@ -27,6 +30,7 @@ Full-stack monorepo with a **Symfony API** (FrankenPHP), a **React frontend** (T
 
 | Component | Technology                                                        |
 |-----------|-------------------------------------------------------------------|
+| Reverse Proxy | Caddy 2                                                           |
 | API | Symfony 8 / PHP 8.4 / FrankenPHP                                  |
 | Frontend | React 19 / TanStack Start / Vite 7 / Tailwind 4                   |
 | Database | PostgreSQL 16                                                     |
@@ -52,7 +56,7 @@ Full-stack monorepo with a **Symfony API** (FrankenPHP), a **React frontend** (T
    cp .env.example .env
    ```
 
-   Review `.env` and adjust values as needed (database credentials, ports, secrets).
+   Review `.env` and adjust values as needed (database credentials, secrets).
 
 3. **Start the development environment**
 
@@ -70,18 +74,18 @@ The dev environment mounts source code into the containers for live reloading:
 - **Frontend**: Vite dev server with HMR runs inside the container, source files are bind-mounted.
 - **Database**: Port is exposed to the host for use with local database tools.
 
-### Service URLs (Development)
+All services are accessed through the Caddy reverse proxy. The domain `local.gd` (and all its subdomains) resolves to `127.0.0.1`, so no `/etc/hosts` changes are needed. Frontend and API share `app.local.gd` (same origin, path-based routing); observability tools get their own subdomains.
+
+### Service URLs
 
 | Service | URL |
 |---------|-----|
-| Frontend | [http://localhost:3001](http://localhost:3001) |
-| API (HTTPS) | [https://localhost](https://localhost) |
-| API (HTTP) | [http://localhost](http://localhost) |
-| Grafana | [http://localhost:3000](http://localhost:3000) |
-| Prometheus | [http://localhost:9090](http://localhost:9090) |
-| Jaeger UI | [http://localhost:16686](http://localhost:16686) |
-| Tempo | [http://localhost:3200](http://localhost:3200) |
-| Loki | [http://localhost:3100](http://localhost:3100) |
+| Frontend | [https://app.local.gd](https://app.local.gd) |
+| API | [https://app.local.gd/api/...](https://app.local.gd/api/) |
+| API Docs (Swagger) | [https://app.local.gd/api/doc](https://app.local.gd/api/doc) |
+| Grafana | [https://grafana.local.gd](https://grafana.local.gd) |
+| Jaeger | [https://jaeger.local.gd](https://jaeger.local.gd) |
+| Prometheus | [https://prometheus.local.gd](https://prometheus.local.gd) |
 
 ## Production
 
@@ -96,19 +100,19 @@ Make sure the following variables are set in `.env` for production:
 - `APP_SECRET` -- Symfony application secret
 - `CADDY_MERCURE_JWT_SECRET` -- secure JWT key for Mercure
 - `POSTGRES_PASSWORD` -- strong database password
-- `SERVER_NAME` -- your domain name
+- `PROXY_DOMAIN` -- your domain name (e.g. `example.com`)
 
 ## Running Individual Services
 
 ```bash
 # API + database only
-docker compose up php database
+docker compose up proxy php database
 
 # Observability stack only
-docker compose up tempo loki prometheus grafana otel-collector jaeger
+docker compose up proxy tempo loki prometheus grafana otel-collector jaeger
 
 # Frontend only
-docker compose up app
+docker compose up proxy app php database
 ```
 
 ## Project Structure
@@ -129,7 +133,8 @@ docker compose up app
 │   │   ├── routes/             # TanStack Router file-based routes
 │   │   └── api/                # API client layer
 │   └── public/                 # Static assets
-├── docker/                     # Observability infrastructure config
+├── docker/                     # Infrastructure config
+│   ├── caddy/                  # Reverse proxy Caddyfile
 │   ├── grafana/                # Grafana datasource provisioning
 │   ├── otel-collector/         # OpenTelemetry Collector config
 │   ├── prometheus/             # Prometheus scrape config
