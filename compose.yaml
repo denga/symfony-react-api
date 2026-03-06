@@ -1,0 +1,73 @@
+services:
+  tempo:
+    image: ${TEMPO_IMAGE}
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./docker/tempo/tempo.yaml:/etc/tempo.yaml
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+      - "4317"
+
+  loki:
+    image: ${LOKI_IMAGE}
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  prometheus:
+    image: prom/prometheus:v3.10.0
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prom-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  otel-collector:
+      image: ${COLLECTOR_CONTRIB_IMAGE}
+      command: [ "--config=/etc/otel-collector-config.yaml" ]
+      depends_on:
+        - tempo
+        - loki
+        - prometheus
+      volumes:
+        - ./docker/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      ports:
+        - "4317:4317" # OTLP gRPC
+        - "4318:4318" # OTLP HTTP
+        - "8888:8888" # Prometheus metrics (collector self-metrics)
+
+  grafana:
+    image: ${GRAFANA_IMAGE}
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    depends_on:
+      - tempo
+      - loki
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    container_name: jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "14250:14250"   # Jaeger gRPC (collector)
+      - "14268:14268"   # Jaeger HTTP thrift (collector)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+
+volumes:
+  tempo-data:
+  grafana-data:
+  prom-data:
