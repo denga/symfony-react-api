@@ -97,7 +97,10 @@ services:
 
   loki:
     image: ${LOKI_IMAGE}
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./docker/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
 
   prometheus:
     image: ${PROMETHEUS_IMAGE}
@@ -152,4 +155,5 @@ volumes:
   database_data:
   tempo_data:
   grafana_data:
+  loki_data:
   prom_data:
