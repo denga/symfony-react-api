@@ -31,7 +31,7 @@ datasources:
           filterByTraceID: false
           filterBySpanID: false
           customQuery: true
-          query: '{$${__tags}} | traceID = `$${__span.traceId}`'
+          query: '{$${__tags}} | trace_id=`$${__span.traceId}`'
           tags:
             - key: service.name
               value: service_name
@@ -57,10 +57,5 @@ datasources:
           - name: traceID
             datasourceUid: tempo
             matcherRegex: "trace_id"
-            matcherType: label
-            url: "$${__value.raw}"
-          - name: traceID
-            datasourceUid: tempo
-            matcherRegex: "traceID"
             matcherType: label
             url: "$${__value.raw}"
