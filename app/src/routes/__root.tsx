@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  useRouter,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
@@ -46,6 +48,31 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
 })
 
+function TelemetryInit() {
+  const router = useRouter()
+
+  useEffect(() => {
+    let teardown: (() => void) | undefined
+
+    Promise.all([
+      import('../telemetry/browser'),
+      import('../telemetry/route-instrumentation'),
+    ]).then(([{ initBrowserTelemetry }, { instrumentRouter }]) => {
+      initBrowserTelemetry()
+      teardown = instrumentRouter(router)
+    })
+
+    return () => {
+      teardown?.()
+      import('../telemetry/browser').then(({ shutdownTelemetry }) => {
+        shutdownTelemetry()
+      })
+    }
+  }, [router])
+
+  return null
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -55,6 +82,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
         <TanStackQueryProvider>
+          <TelemetryInit />
           <Header />
           {children}
           <Footer />

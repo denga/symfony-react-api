@@ -28,8 +28,10 @@ datasources:
           datasourceUid: loki
           spanStartTimeShift: "-1h"
           spanEndTimeShift: "1h"
-          filterByTraceID: true
+          filterByTraceID: false
           filterBySpanID: false
+          customQuery: true
+          query: '{$${__tags}} | traceID = `$${__span.traceId}`'
           tags:
             - key: service.name
               value: service_name
@@ -54,6 +56,11 @@ datasources:
         derivedFields:
           - name: traceID
             datasourceUid: tempo
-            matcherRegex: "(.+)"
+            matcherRegex: "trace_id"
             matcherType: label
-            url: "${__value.raw}"
+            url: "$${__value.raw}"
+          - name: traceID
+            datasourceUid: tempo
+            matcherRegex: "traceID"
+            matcherType: label
+            url: "$${__value.raw}"

@@ -17,6 +17,11 @@ app.{$PROXY_DOMAIN:local.gd} {
 		}
 	}
 
+	handle /otlp/* {
+		uri strip_prefix /otlp
+		reverse_proxy otel-collector:4318
+	}
+
 	handle {
 		reverse_proxy app:3000
 	}
