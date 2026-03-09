@@ -22,7 +22,9 @@ readonly class DoctrineOrderRepository implements OrderRepositoryInterface
 
     public function save(Order $order): void
     {
-        $this->logger->debug('Persisting order', ['orderId' => $order->id()->toString()]);
+        $this->logger->debug('Persisting order', [
+            'orderId' => $order->id()->toString(),
+        ]);
 
         $orderDoctrineEntity = OrderMapper::toPersistence($order);
         $existing = $this->entityManager->find(OrderDoctrineEntity::class, $order->id()->toString());
@@ -51,7 +53,10 @@ readonly class DoctrineOrderRepository implements OrderRepositoryInterface
 
     public function findPaginated(int $page, int $perPage): array
     {
-        $this->logger->debug('Querying paginated orders', ['offset' => max(0, ($page - 1) * $perPage), 'limit' => $perPage]);
+        $this->logger->debug('Querying paginated orders', [
+            'offset' => max(0, ($page - 1) * $perPage),
+            'limit' => $perPage,
+        ]);
 
         $queryBuilder = $this->entityManager->createQueryBuilder()
             ->select('o')

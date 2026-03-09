@@ -18,7 +18,9 @@ final readonly class SymfonyDomainEventPublisher implements DomainEventPublisher
 
     public function publish(object $event): void
     {
-        $this->logger->info('Publishing domain event', ['event' => $event::class]);
+        $this->logger->info('Publishing domain event', [
+            'event' => $event::class,
+        ]);
 
         $this->eventDispatcher->dispatch($event);
     }

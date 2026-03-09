@@ -32,7 +32,11 @@ final readonly class ListOrdersHandler implements ListOrdersHandlerInterface
             $order->isPaid()
         ), $result['items']);
 
-        $this->logger->info('Querying orders', ['page' => $page, 'perPage' => $perPage, 'totalItems' => $result['total']]);
+        $this->logger->info('Querying orders', [
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalItems' => $result['total'],
+        ]);
 
         return new PaginatedResult($summaries, $result['total'], $page, $perPage);
     }

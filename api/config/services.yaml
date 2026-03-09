@@ -30,6 +30,7 @@ services:
     App\Application\Command\CreateOrderHandlerInterface: '@App\Application\Command\CreateOrderHandler'
     App\Application\Query\ListOrdersHandlerInterface: '@App\Application\Query\ListOrdersHandler'
     App\Domain\Event\DomainEventPublisherInterface: '@App\Infrastructure\Event\SymfonyDomainEventPublisher'
+    App\Shared\Telemetry\OrderMetricsInterface: '@App\Infrastructure\Telemetry\OpenTelemetryOrderMetrics'
 
     App\Domain\Service\:
         resource: '../src/Domain/Service/*'
@@ -52,12 +53,23 @@ services:
         autowire: true
         autoconfigure: true
 
+    App\Shared\:
+        resource: '../src/Shared/*'
+        autowire: true
+        autoconfigure: true
+
     App\Command\CreateOrderConsoleCommand:
         tags: ['console.command']
 
     Monolog\Processor\PsrLogMessageProcessor:
         tags:
             - { name: monolog.processor }
+
+    OpenTelemetry\API\Metrics\MeterProviderInterface:
+        factory: ['OpenTelemetry\API\Globals', 'meterProvider']
+
+    OpenTelemetry\API\Trace\TracerProviderInterface:
+        factory: ['OpenTelemetry\API\Globals', 'tracerProvider']
 
     OpenTelemetry\API\Logs\LoggerProviderInterface:
         factory: ['OpenTelemetry\API\Globals', 'loggerProvider']

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Model;
 
+use App\Domain\Event\OrderCreated;
 use App\Domain\Event\OrderPlaced;
 
 final class Order
@@ -30,6 +31,13 @@ final class Order
             throw new \InvalidArgumentException('Order must contain at least one item.');
         }
         $this->items = $items;
+
+        $this->recordEvent(new OrderCreated(
+            $this->orderId->toString(),
+            \count($items),
+            $this->totalCents(),
+            array_sum(array_map(static fn (OrderItem $orderItem): int => $orderItem->quantity(), $items)),
+        ));
     }
 
     /**
@@ -41,6 +49,7 @@ final class Order
     public static function fromPersistence(OrderId $orderId, string $customerId, array $items, bool $paid): self
     {
         $order = new self($orderId, $customerId, $items);
+        $order->recordedEvents = [];
         if ($paid) {
             $order->paid = true;
         }

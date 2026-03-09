@@ -89,6 +89,7 @@ final class OrderControllerTest extends WebTestCase
         $this->assertIsArray($data);
         $this->assertArrayHasKey('meta', $data);
         $this->assertArrayHasKey('data', $data);
+        $this->assertIsArray($data['meta']);
         $this->assertSame(1, $data['meta']['page']);
         $this->assertSame(20, $data['meta']['perPage']);
     }

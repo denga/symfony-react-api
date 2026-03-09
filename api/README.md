@@ -19,16 +19,20 @@ flowchart TB
     subgraph app [Application Layer]
         Handlers[Commands, Handlers, Use Cases]
     end
+    subgraph shared [Shared Layer]
+        CrossCutting[Telemetry Interfaces]
+    end
     subgraph domain [Domain Layer]
         Models[Models, Factories, Repository Interfaces]
     end
     subgraph infra [Infrastructure Layer]
-        Doctrine[Doctrine, Persistence, Mappers]
+        Doctrine[Doctrine, Persistence, Mappers, Telemetry]
     end
     OrderCtrl --> ReqRes
     ReqRes --> Handlers
     Handlers --> Models
     Models --> Doctrine
+    Doctrine -->|subscribes| CrossCutting
 ```
 
 **Layers overview:**
@@ -39,8 +43,9 @@ flowchart TB
 | **Commands**       | `src/Command/`        | CLI commands, delegation to Application               |
 | **UI**             | `src/UI/Api/`         | Request/Response DTOs, validation, exception handling |
 | **Application**    | `src/Application/`    | Use cases (Commands/Handlers), transaction control   |
+| **Shared**         | `src/Shared/`         | Cross-cutting concerns (telemetry interfaces)        |
 | **Domain**         | `src/Domain/`         | Business logic, models, repository interfaces        |
-| **Infrastructure** | `src/Infrastructure/` | Doctrine entities, persistence, mappers               |
+| **Infrastructure** | `src/Infrastructure/` | Doctrine entities, persistence, mappers, telemetry   |
 
 ## API Endpoints
 
@@ -96,8 +101,50 @@ docker compose exec php php bin/console app:create-order cust-123 --item "sku-1:
 - `src/Command` – Console commands (CLI entry points)
 - `src/UI/Api` – Request/Response DTOs, mappers, validation
 - `src/Application` – Commands, handlers, use cases
+- `src/Shared` – Cross-cutting concerns (telemetry interfaces)
 - `src/Domain` – Domain models, factories, repository interfaces
-- `src/Infrastructure` – Doctrine entities, persistence, mappers
+- `src/Infrastructure` – Doctrine entities, persistence, mappers, telemetry
+
+## Observability (OpenTelemetry)
+
+The API uses OpenTelemetry for traces, logs, and metrics. Auto-instrumentation covers Symfony HTTP handling and Doctrine queries. Additionally, custom metrics and spans are implemented for business-level observability.
+
+### Metrics (Event-driven)
+
+Metrics are collected via domain events, not direct injection. The `Order` model records an `OrderCreated` event in its constructor. The `OrderMetricsSubscriber` (Infrastructure layer) listens for this event and records metrics via `OrderMetricsInterface`:
+
+```
+Order (constructor) --> OrderCreated event --> DomainEventPublisher --> OrderMetricsSubscriber --> OpenTelemetryOrderMetrics
+```
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `order.created` | Counter | Total number of successfully created orders |
+| `order.items_count` | Histogram | Number of distinct line items per order |
+| `order.total_cents` | Histogram | Total order value in cents |
+| `order.items_quantity` | Histogram | Sum of all item quantities per order |
+
+Metrics are exported via OTLP to the OTel Collector, which forwards them to Prometheus via remote write. Query them in Grafana (Prometheus datasource) or directly at `prometheus.local.gd`.
+
+### Custom Spans
+
+`CreateOrderHandler` creates a custom span `create_order` that wraps the entire use case:
+
+| Attribute | Description |
+|-----------|-------------|
+| `order.customer_id` | Customer ID from the command |
+| `order.items_count` | Number of line items |
+| `order.total_cents` | Computed order total (set after persistence) |
+| `order.id` | Generated order ID (set after persistence) |
+
+**Span Events:**
+
+| Event | When |
+|-------|------|
+| `order.persisted` | After successful DB commit (includes `order.id`) |
+| `order.events_published` | After domain events have been dispatched |
+
+On failure, the span records the exception and sets status to `ERROR`.
 
 ## Development Tools
 

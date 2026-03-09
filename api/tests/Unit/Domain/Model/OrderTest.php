@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Model;
 
+use App\Domain\Event\OrderCreated;
 use App\Domain\Event\OrderPlaced;
 use App\Domain\Model\Order;
 use App\Domain\Model\OrderId;
@@ -26,6 +27,25 @@ final class OrderTest extends TestCase
         $this->assertFalse($order->isPaid());
     }
 
+    public function testConstructorRecordsOrderCreatedEvent(): void
+    {
+        $orderId = OrderId::fromString('550e8400-e29b-41d4-a716-446655440000');
+        $items = [
+            new OrderItem('SKU-1', 2, 500),
+            new OrderItem('SKU-2', 3, 1000),
+        ];
+
+        $order = new Order($orderId, 'customer-123', $items);
+        $events = $order->releaseEvents();
+
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(OrderCreated::class, $events[0]);
+        $this->assertSame('550e8400-e29b-41d4-a716-446655440000', $events[0]->orderId);
+        $this->assertSame(2, $events[0]->itemsCount);
+        $this->assertSame(4000, $events[0]->totalCents);
+        $this->assertSame(5, $events[0]->itemsQuantity);
+    }
+
     public function testThrowsOnEmptyItems(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -37,6 +57,7 @@ final class OrderTest extends TestCase
     public function testMarkPaidReleasesOrderPlacedEvent(): void
     {
         $order = new Order(OrderId::generate(), 'customer-123', [new OrderItem('SKU-1', 1, 100)]);
+        $order->releaseEvents();
 
         $order->markPaid();
 
@@ -60,6 +81,8 @@ final class OrderTest extends TestCase
     public function testReleaseEventsClearsEvents(): void
     {
         $order = new Order(OrderId::generate(), 'customer-123', [new OrderItem('SKU-1', 1, 100)]);
+        $order->releaseEvents();
+
         $order->markPaid();
 
         $events1 = $order->releaseEvents();
@@ -79,6 +102,16 @@ final class OrderTest extends TestCase
         $this->assertTrue($order->isPaid());
         $this->assertSame($orderId, $order->id());
         $this->assertSame(100, $order->totalCents());
+    }
+
+    public function testFromPersistenceDoesNotRecordEvents(): void
+    {
+        $orderId = OrderId::generate();
+        $items = [new OrderItem('SKU-1', 1, 100)];
+
+        $order = Order::fromPersistence($orderId, 'customer-123', $items, false);
+
+        $this->assertCount(0, $order->releaseEvents());
     }
 
     public function testFromPersistenceReconstitutesUnpaidOrder(): void

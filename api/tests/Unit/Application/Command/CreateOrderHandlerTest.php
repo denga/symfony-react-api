@@ -13,6 +13,7 @@ use App\Domain\Model\OrderItem;
 use App\Domain\Repository\OrderRepositoryInterface;
 use App\Domain\Service\OrderFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenTelemetry\API\Trace\NoopTracerProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -52,6 +53,7 @@ final class CreateOrderHandlerTest extends TestCase
             $mockDomainEventPublisher,
             $mockEntityManager,
             $mockLogger,
+            new NoopTracerProvider(),
         );
 
         $createOrderCommand = new CreateOrderCommand('cust-123', [
@@ -92,6 +94,7 @@ final class CreateOrderHandlerTest extends TestCase
             $mockDomainEventPublisher,
             $mockEntityManager,
             $mockLogger,
+            new NoopTracerProvider(),
         );
 
         $createOrderCommand = new CreateOrderCommand('cust-123', [

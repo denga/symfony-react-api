@@ -20,19 +20,25 @@ final readonly class GetOrderHandler
 
     public function handle(GetOrderQuery $getOrderQuery): ?OrderSummary
     {
-        $this->logger->info('Loading order', ['id' => $getOrderQuery->orderId]);
+        $this->logger->info('Loading order', [
+            'id' => $getOrderQuery->orderId,
+        ]);
 
         try {
             $orderId = OrderId::fromString($getOrderQuery->orderId);
         } catch (\InvalidArgumentException) {
-            $this->logger->warning('Order not found in repository', ['id' => $getOrderQuery->orderId]);
+            $this->logger->warning('Order not found in repository', [
+                'id' => $getOrderQuery->orderId,
+            ]);
 
             return null;
         }
 
         $order = $this->orderRepository->findById($orderId);
         if (! $order instanceof Order) {
-            $this->logger->warning('Order not found in repository', ['id' => $getOrderQuery->orderId]);
+            $this->logger->warning('Order not found in repository', [
+                'id' => $getOrderQuery->orderId,
+            ]);
 
             return null;
         }

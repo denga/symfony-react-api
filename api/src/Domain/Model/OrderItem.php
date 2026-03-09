@@ -41,6 +41,6 @@ final readonly class OrderItem
 
     public function totalCents(): int
     {
-        return (int) ($this->quantity * $this->unitPriceCents);
+        return $this->quantity * $this->unitPriceCents;
     }
 }

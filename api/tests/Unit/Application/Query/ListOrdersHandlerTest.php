@@ -11,6 +11,7 @@ use App\Domain\Model\OrderId;
 use App\Domain\Model\OrderItem;
 use App\Domain\Repository\OrderRepositoryInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 final class ListOrdersHandlerTest extends TestCase
 {
@@ -30,7 +31,7 @@ final class ListOrdersHandlerTest extends TestCase
                 'total' => 1,
             ]);
 
-        $listOrdersHandler = new ListOrdersHandler($mockRepo);
+        $listOrdersHandler = new ListOrdersHandler($mockRepo, $this->createStub(LoggerInterface::class));
 
         $listOrdersQuery = new ListOrdersQuery(1, 10);
 
